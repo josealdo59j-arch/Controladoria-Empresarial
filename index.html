@@ -352,7 +352,6 @@ footer p{color:var(--muted);margin:6px 0 0}
     <button class="tab" data-g="int" role="tab">Referências internacionais</button>
   </div>
   <div class="authors" id="authors"></div>
-  <p class="hint">Todas as fotos estão embutidas no arquivo. Para trocar uma imagem, <i>abra o autor e use “Trocar foto”</i> (fica salva neste navegador) ou preencha o campo <code>photo</code> do autor no código.</p>
 </section>
 
 <!-- 3 PLANEJAMENTO OPERACIONAL -->
@@ -527,11 +526,6 @@ footer p{color:var(--muted);margin:6px 0 0}
         <div class="info">
           <h3 id="mname"></h3>
           <div class="mtags" id="mtags"></div>
-          <div class="phbtns">
-            <button class="pbtn" id="padd" type="button">📷 Adicionar foto</button>
-            <button class="pbtn" id="prem" type="button" hidden>Remover foto</button>
-            <input type="file" id="pfile" accept="image/*" hidden>
-          </div>
         </div>
       </div>
       <div class="mblock p"><small style="color:var(--amber)">Carreira e profissão</small><p id="mcareer"></p></div>
@@ -556,7 +550,6 @@ var IMG = {
 var COORD = ["Dicla Jemima Correia Lisboa","Diego Maia de Melo","José Aldo Gomes de Oliveira","Neilson Monteiro dos Santos","Wallysson Jonathan do Nascimento Lopes","Yago Matheus Rodrigues dos Santos"];
 var ANAL  = ["Ângelo Antonio Pereira Santos","Ericlessia Porfirio da Silva","Paulo César Rodrigues Rocha"];
 
-/* Para fixar uma foto no arquivo: preencha "photo" com uma URL ou imagem em base64. */
 var AUTHORS = [
  {g:"nac", name:"Antonio Cezar Bornia", years:"déc. 1960–", inst:"UFSC", prof:"Professor · Engenheiro mecânico", c1:"#1b8cf0", c2:"#0a4d92", photo:IMG.bornia,
   career:"Engenheiro mecânico pela UFPR (1985), fez mestrado (1988) e doutorado (2005) em Engenharia de Produção na UFSC, onde é professor titular desde 1992. Supervisiona o Laboratório de Custos e Medidas e tem atuação de liderança em entidades da área, como a Associação Brasileira de Custos.",
@@ -717,12 +710,7 @@ function money(n){var v=Math.round(n); return v<0?"("+Math.abs(v).toLocaleString
 function team(id,list,cls){var box=$(id); list.forEach(function(n){var m=el("div","mem "+cls); m.innerHTML='<div class="av">'+esc(ini(n))+'</div><span>'+esc(n)+'</span>'; box.appendChild(m)})}
 team("teamC",COORD,"co"); team("teamA",ANAL,"an");
 
-/* ============ FOTOS ADICIONADAS PELO USUÁRIO (salvas neste navegador) ============ */
-function lsGet(k){try{return window.localStorage.getItem(k)}catch(e){return null}}
-function lsSet(k,v){try{window.localStorage.setItem(k,v);return true}catch(e){return false}}
-function lsDel(k){try{window.localStorage.removeItem(k)}catch(e){}}
-AUTHORS.forEach(function(a,i){a.key="po_foto_"+i; a.user=lsGet(a.key)||""});
-function pic(a){return a.user||a.photo}
+function pic(a){return a.photo}
 
 /* ============ AUTORES + MODAL ============ */
 var group="nac", cur=-1;
@@ -766,8 +754,6 @@ function fillModal(i){
   $("mname").textContent=a.name;
   $("mtags").innerHTML='<span class="tag b">'+esc(a.years)+'</span><span class="tag">'+esc(a.inst)+'</span><span class="tag p">'+esc(a.prof)+'</span>';
   $("mcareer").textContent=a.career; $("mcontrib").textContent=a.contrib; $("mlink").textContent=a.link;
-  $("padd").textContent=pic(a)?"📷 Trocar foto":"📷 Adicionar foto";
-  $("prem").hidden=!a.user;
   var bk=$("mbook"); if(a.book){$("mbookimg").src=a.book; bk.hidden=false} else {bk.hidden=true}
   var same=AUTHORS.map(function(x,k){return x.g===a.g?k:-1}).filter(function(k){return k>=0});
   $("mcount").textContent=(same.indexOf(i)+1)+" de "+same.length;
@@ -784,26 +770,6 @@ $("mclose").addEventListener("click",closeM);
 $("mwrap").addEventListener("click",function(e){ if(e.target===$("mwrap")) closeM() });
 dlg.addEventListener("keydown",function(e){ if(e.key==="ArrowRight") step(1); if(e.key==="ArrowLeft") step(-1) });
 dlg.addEventListener("close",renderAuthors);
-
-/* adicionar / remover foto */
-$("padd").addEventListener("click",function(){$("pfile").click()});
-$("pfile").addEventListener("change",function(){
-  var f=this.files&&this.files[0]; if(!f) return;
-  var rd=new FileReader();
-  rd.onload=function(){
-    var img=new Image();
-    img.onload=function(){
-      var max=360, r=Math.min(1,max/Math.max(img.width,img.height));
-      var c=document.createElement("canvas"); c.width=Math.round(img.width*r); c.height=Math.round(img.height*r);
-      c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-      var data=c.toDataURL("image/jpeg",0.85), a=AUTHORS[cur];
-      a.user=data; lsSet(a.key,data); fillModal(cur); renderAuthors();
-    };
-    img.src=rd.result;
-  };
-  rd.readAsDataURL(f); this.value="";
-});
-$("prem").addEventListener("click",function(){var a=AUTHORS[cur]; a.user=""; lsDel(a.key); fillModal(cur); renderAuthors()});
 
 /* ============ CHIPS EXPLICATIVOS ============ */
 function chips(listId,exId,data){
